@@ -98,8 +98,38 @@ class LIIF(nn.Module):
 
         tot_area = torch.stack(areas).sum(dim=0)
         if self.local_ensemble:
-            t = areas[0]; areas[0] = areas[3]; areas[3] = t
-            t = areas[1]; areas[1] = areas[2]; areas[2] = t
+            t = areas[0];
+            ha =[]
+            ha[0] = area[0]/2;
+            ha[1] = area[1]/2;
+            ha[2] = area[2]/2;
+            ha[3]  = area[3]/2;
+            tmp = max(ha);
+            index = ha.index(tmp);
+            if index == 0:
+                t = area[0] + ha[1] + ha[2];
+                area[0] = area[3];
+                area[3] = t;
+                area[1] = ha[2];
+                area[2] = ha[1];
+            elif index == 1:
+                t = area[1] + ha[0] + ha[3];
+                area[1] = area[2];
+                area[2] = t;
+                area[0] = ha[3];
+                area[3] = ha[0];
+            elif index == 2:
+                t = area[2] + ha[0] + ha[3];
+                area[2] = area[1];
+                area[1] = t;
+                area[0] = ha[3];
+                area[3] = ha[0];
+            else:
+                t = area[3] + ha[1] + ha[2];
+                area[3] = area[0];
+                area[0] = t;
+                area[1] = ha[2];
+                area[2] = ha[1];
         ret = 0
         for pred, area in zip(preds, areas):
             ret = ret + pred * (area / tot_area).unsqueeze(-1)
@@ -108,3 +138,4 @@ class LIIF(nn.Module):
     def forward(self, inp, coord, cell):
         self.gen_feat(inp)
         return self.query_rgb(coord, cell)
+
